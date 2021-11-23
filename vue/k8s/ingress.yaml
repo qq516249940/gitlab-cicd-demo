@@ -1,0 +1,44 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: https-${CI_PROJECT_NAME}
+  namespace: demo-project
+  annotations:
+    kubesphere.io/alias-name: ${CI_PROJECT_NAME}
+    kubesphere.io/creator: project-regular
+spec:
+# 开启https
+  tls:
+    - hosts:
+      - ${SLD}.demo.com
+      # 证书名字
+      secretName: demo-tls
+  rules:
+    - host: ${SLD}.demo.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              serviceName: svc-${CI_PROJECT_NAME}
+              servicePort: 80
+
+---
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: http-${CI_PROJECT_NAME}
+  namespace: demo-project
+  annotations:
+    kubesphere.io/alias-name: ${CI_PROJECT_NAME}
+    kubesphere.io/creator: project-regular
+spec:
+  rules:
+    - host: ${SLD}.demo.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              serviceName: svc-${CI_PROJECT_NAME}
+              servicePort: 80

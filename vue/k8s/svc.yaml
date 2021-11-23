@@ -1,0 +1,29 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: svc-${CI_PROJECT_NAME}
+  namespace: demo-project
+  labels:
+    app: svc-${CI_PROJECT_NAME}
+    app.kubernetes.io/name: svc-${CI_PROJECT_NAME}
+    app.kubernetes.io/version: v1
+    version: v1
+  annotations:
+    kubesphere.io/creator: project-regular
+    kubesphere.io/serviceType: statelessservice
+    servicemesh.kubesphere.io/enabled: 'false'
+spec:
+  ports:
+    - name: http-nginx-80
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      # nodePort: 31500
+  selector:
+    app: ${CI_PROJECT_NAME}
+    app.kubernetes.io/name: ${CI_PROJECT_NAME}
+    app.kubernetes.io/version: v1
+
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
