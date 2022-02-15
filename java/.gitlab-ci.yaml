@@ -1,0 +1,38 @@
+stages:
+  - build
+  - deploy
+
+variables: 
+  DEPLOY_USER: deployer
+  TARGET_HOST: 192.168.5.223
+  
+### prod 
+pro-job: 
+  stage: build
+  script: 
+  - pwd
+  tags:
+    -  al-git-runner 
+  only:
+  - master  
+  when:
+    manual
+      
+ prod-build-xxx-xxx-core:
+  stage: deploy
+  variables:
+    TARGET_HOST: 172.19.xxx.xxx   
+  script:
+    - mvn -version && mvn -U clean package  -s /opt/settings-mx.xml  -Dmaven.test.skip=true -Dmaven.repo.local=/home/gitlab-runner/.m2prod/repository 
+    - echo $CI_COMMIT_BRANCH
+    - echo "finish build"
+    - ssh $DEPLOY_USER@$TARGET_HOST "mkdir -p abcdir"
+    - rsync -av xxx-xxx-core/.xxx-xxx-core.sh xxx-xxx-core/target/xxx-xxx-core.jar $DEPLOY_USER@$TARGET_HOST:~/abcdir/
+    - ssh $DEPLOY_USER@$TARGET_HOST "cd abcdir && bash .xxx-xxx-core.sh restart --spring.profiles.active=prod"
+  needs: [pro-job] 
+  tags:
+    -  al-git-runner    
+  only:
+  - master  
+  when:
+    manual     
