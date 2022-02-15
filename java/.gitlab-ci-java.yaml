@@ -1,0 +1,32 @@
+stages:
+  - build
+  - deploy
+
+variables: 
+  DEPLOY_USER: deployer
+  TARGET_HOST: 192.168.5.223
+  # TARGET: distribution/target/mxsk-operate-2.0/mxsk-operate-2.0
+
+dev-build-pms-app:
+  stage: build
+  only:
+  - dev  
+  - dev-chunk
+  script:
+    - java -version && mvn clean package install -s /opt/settings-mx.xml  -Dmaven.test.skip=true 
+    - echo $CI_COMMIT_BRANCH
+    - echo "finish build"
+    - docker build -f Dockerfile . -t registry.cn-shenzhen.aliyuncs.com/xxx-dev/pms-app:$CI_COMMIT_REF_NAME-${CI_COMMIT_SHORT_SHA}
+    - docker push registry.cn-shenzhen.aliyuncs.com/xxx-dev/pms-app:$CI_COMMIT_REF_NAME-${CI_COMMIT_SHORT_SHA}
+    - kubectl set image deployment/pms-app  pms-app=registry-vpc.cn-shenzhen.aliyuncs.com/xxx-dev/pms-app:$CI_COMMIT_REF_NAME-${CI_COMMIT_SHORT_SHA} -n pms
+  artifacts:
+      name: "pms-app"
+      untracked: true
+      expire_in: 60 mins
+      paths:
+          - target/pms-0.0.1-SNAPSHOT.jar        
+  tags:
+    - local-runner
+
+# include:
+#   - local: k8s/dev-k8s-ci.yaml
