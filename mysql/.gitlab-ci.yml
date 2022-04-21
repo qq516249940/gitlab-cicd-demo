@@ -1,0 +1,54 @@
+#docker shell exec执行器
+stages:
+  - "build"
+  - "test"
+
+services:
+- mysql
+
+variables:
+  # Configure mysql service (https://hub.docker.com/_/mysql/)
+  MYSQL_DATABASE: hahaha
+  MYSQL_ROOT_PASSWORD: 123456
+  HOST: 192.168.5.223
+
+connect:build:
+  stage: build
+  image: mysql
+  script:
+  - echo "SELECT 'OK';" | mysql --user=root --password="$MYSQL_ROOT_PASSWORD" --host=${HOST} "$MYSQL_DATABASE"
+  - echo "123" > ok.txt
+  tags:
+    - docker-runner
+    # - ali-docker
+  only:
+    - master  
+  artifacts:
+    paths:
+      - ok.txt
+    untracked: false
+    expire_in: 30 days  
+  
+
+see:
+  stage: test
+  image: mysql
+  script:
+  - cat ok.txt
+  tags:
+    # - docker-runner
+    - ali-docker
+  only:
+    - master  
+  # artifacts:
+  #   paths:
+  #     - ok.txt
+  #   untracked: false
+  #   expire_in: 30 days  
+  dependencies:
+  - connect:build
+
+include:
+  - template: Security/Container-Scanning.gitlab-ci.yml  
+
+    
